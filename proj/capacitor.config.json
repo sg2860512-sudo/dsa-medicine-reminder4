@@ -1,0 +1,12 @@
+{
+  "appId": "com.sayan.dsamedicine",
+  "appName": "DSA Medicine Reminder",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_bell",
+      "iconColor": "#2563EB"
+    }
+  }
+}

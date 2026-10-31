@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>Sayan's DSA Medicine Reminder App</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
+        
+        /* Top Permanent Developer Header */
+        .dev-header-bar { max-width: 1000px; margin: 0 auto 15px auto; background: #0f172a; color: white; padding: 12px 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-wrap: wrap; gap: 10px; }
+        .developer-badge { display: flex; align-items: center; gap: 12px; }
+        .dev-avatar { width: 40px; height: 40px; border-radius: 50%; background: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 16px; border: 2px solid #38bdf8; }
+        .dev-info .dev-title { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dev-info .dev-name { font-size: 16px; font-weight: bold; color: #38bdf8; }
+        .live-clock { font-size: 18px; font-weight: bold; color: #38bdf8; letter-spacing: 1px; background: #1e293b; padding: 6px 14px; border-radius: 6px; border: 1px solid #334155; }
+
+        h1 { text-align: center; color: #1e3a8a; margin: 5px 0; font-size: 26px; }
+        .subtitle { text-align: center; color: #555; font-size: 13px; margin-bottom: 20px; }
+        
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+
+        /* Fake WhatsApp OTP Notification Banner */
+        #whatsappSimBanner { display: none; max-width: 420px; margin: 0 auto 15px auto; background: #dcfce7; border-left: 6px solid #16a34a; padding: 12px 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); color: #065f46; font-size: 14px; }
+
+        /* Auth Cards (Register, OTP, Login) */
+        .auth-card { max-width: 420px; margin: 20px auto; background: #f8fafc; padding: 28px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .auth-card h2 { text-align: center; color: #1e3a8a; margin-top: 0; margin-bottom: 18px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px; color: #1e293b; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .btn-primary { width: 100%; background: #2563eb; color: white; border: none; padding: 11px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .switch-text { text-align: center; margin-top: 15px; font-size: 13px; color: #64748b; }
+        .switch-text span { color: #2563eb; cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+        /* Logged-in User Bar inside Dashboard */
+        .user-status-bar { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 18px; border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #1e3a8a; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 14px; overflow: hidden; }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-logout { background: #dc2626; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+
+        /* Breadcrumb Navigation */
+        .breadcrumb { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 15px; font-weight: 600; color: #2563eb; }
+        .breadcrumb span { cursor: pointer; text-decoration: underline; }
+
+        /* Calendar & Views CSS */
+        .year-selector { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .year-selector select, .year-selector button { padding: 8px 14px; font-size: 16px; border-radius: 6px; border: 1px solid #cbd5e1; cursor: pointer; }
+        .year-selector button { background: #2563eb; color: white; border: none; }
+
+        .months-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .month-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; }
+        .month-title { font-weight: bold; text-align: center; color: #1e3a8a; margin-bottom: 10px; font-size: 16px; }
+        
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .day-name { font-size: 12px; font-weight: bold; color: #64748b; padding: 4px 0; }
+        .date-cell { padding: 8px 2px; background: white; border-radius: 4px; cursor: pointer; font-size: 13px; border: 1px solid #e2e8f0; position: relative; transition: 0.15s; }
+        .date-cell:hover { background: #dbeafe; border-color: #2563eb; }
+        .date-cell.has-med::after { content: ''; width: 5px; height: 5px; background: #ef4444; border-radius: 50%; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); }
+
+        .hours-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+        .hour-card { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; user-select: none; transition: 0.2s; }
+        .hour-card:hover { border-color: #2563eb; background: #eff6ff; transform: translateY(-2px); }
+        .hour-card.booked { background: #dcfce7; border-color: #22c55e; }
+        .hour-title { font-size: 18px; font-weight: bold; color: #0f172a; }
+        .hour-sub { font-size: 11px; color: #15803d; margin-top: 4px; font-weight: 600; }
+
+        .minutes-list { display: flex; flex-direction: column; gap: 10px; max-height: 450px; overflow-y: auto; padding-right: 5px; }
+        .minute-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px 15px; border-radius: 8px; }
+        .minute-info { font-weight: bold; color: #1e293b; font-size: 16px; }
+        .minute-med-details { font-size: 13px; color: #15803d; margin-top: 2px; }
+        .btn-add-med { background: #0f766e; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .btn-add-med:hover { background: #115e59; }
+
+        /* Modal & Alarm Banners */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-content h3 { margin-top: 0; color: #1e3a8a; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .btn-save { background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-close { background: #64748b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+
+        #alarmBanner { display: none; background: #fef2f2; border: 2px solid #ef4444; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.01); } 100% { transform: scale(1); } }
+        .btn-stop { background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+    <!-- Permanent Top Bar with Sayan Ghosh's Name & Live Clock -->
+    <div class="dev-header-bar">
+        <div class="developer-badge">
+            <div class="dev-avatar">SG</div>
+            <div class="dev-info">
+                <div class="dev-title">Project Developer</div>
+                <div class="dev-name">Sayan Ghosh</div>
+            </div>
+        </div>
+        <div class="live-clock" id="liveClockDisplay">00:00:00</div>
+    </div>
+
+    <h1>💊 Smart DSA Medicine Reminder</h1>
+    <div class="subtitle">WhatsApp OTP Authentication + Account Creation + Full Year Calendar & Audio Alarm</div>
+
+    <div class="container">
+
+        <!-- Simulated WhatsApp Message Popup for OTP & Password -->
+        <div id="whatsappSimBanner"></div>
+
+        <!-- STEP 1: REGISTER ACCOUNT -->
+        <div id="authRegister" class="auth-card">
+            <h2>1. Create Your Account</h2>
+            <div class="form-group">
+                <label>Enter Your Full Name:</label>
+                <input type="text" id="regName" placeholder="e.g., Sayan Ghosh">
+            </div>
+            <div class="form-group">
+                <label>WhatsApp Number (Demo/Fake allowed):</label>
+                <input type="text" id="regPhone" placeholder="e.g., +91 9876543210">
+            </div>
+            <div class="form-group">
+                <label>Profile Photo URL (Optional):</label>
+                <input type="text" id="regImg" placeholder="Paste image link (or leave blank)">
+            </div>
+            <button class="btn-primary" onclick="handleSendOtp()">Send WhatsApp OTP</button>
+            <div class="switch-text">Already have a Password/ID? <span onclick="showLoginScreen()">Login Here</span></div>
+        </div>
+
+        <!-- STEP 2: VERIFY WHATSAPP OTP -->
+        <div id="authOtp" class="auth-card" style="display:none;">
+            <h2>2. Verify WhatsApp OTP</h2>
+            <p style="font-size:13px; color:#555; text-align:center;">Check the green WhatsApp notification box above for your 4-digit OTP code.</p>
+            <div class="form-group">
+                <label>Enter 4-Digit OTP:</label>
+                <input type="text" id="otpInput" placeholder="Enter 4-digit OTP">
+            </div>
+            <button class="btn-primary" onclick="handleVerifyOtp()">Verify OTP & Generate Password</button>
+            <div class="switch-text"><span onclick="showRegisterScreen()">&#8592; Back to Registration</span></div>
+        </div>
+
+        <!-- STEP 3: LOGIN WITH GENERATED PASSWORD -->
+        <div id="authLogin" class="auth-card" style="display:none;">
+            <h2>3. Account Login</h2>
+            <p style="font-size:13px; color:#555; text-align:center;">Enter your generated Account Password/ID to open your Medicine Calendar.</p>
+            <div class="form-group">
+                <label>Your Account Password / ID:</label>
+                <input type="text" id="loginPass" placeholder="e.g., MED-4829">
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">Login & Open System</button>
+            <div class="switch-text">Need a new account? <span onclick="showRegisterScreen()">Create Account</span></div>
+        </div>
+
+        <!-- STEP 4: MAIN MEDICINE REMINDER SYSTEM (OPENS AFTER LOGIN) -->
+        <div id="mainDashboard" style="display:none;">
+            
+            <!-- Alarm Ringing Banner -->
+            <div id="alarmBanner">
+                <h3 style="color:#dc2626; margin:0;">⏰ MEDICINE TIME ALERT & WHATSAPP MESSAGE SENT!</h3>
+                <p id="alarmDetailsText" style="font-weight:bold; margin:6px 0; font-size:16px;"></p>
+                <p id="alarmInstText" style="font-size:14px; color:#555;"></p>
+                <button class="btn-stop" onclick="stopAlarmSound()">Stop Alarm</button>
+            </div>
+
+            <!-- Logged-in User Bar -->
+            <div class="user-status-bar">
+                <div class="user-profile">
+                    <div class="user-avatar" id="navUserAvatar">U</div>
+                    <div>
+                        <div id="navUserName" style="font-weight:bold; font-size:15px; color:#1e3a8a;">User Name</div>
+                        <div id="navUserDetails" style="font-size:12px; color:#475569;">WhatsApp: --- | Account ID: ---</div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">Logout</button>
+            </div>
+
+            <!-- Android alarm tools -->
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+                <button onclick="Native.test()" style="padding:8px 12px; border:1px solid #cbd5e1; background:#f8fafc; border-radius:6px; cursor:pointer; font-size:13px;">🔔 Test alarm (10 sec)</button>
+                <button onclick="Native.setup(true)" style="padding:8px 12px; border:1px solid #cbd5e1; background:#f8fafc; border-radius:6px; cursor:pointer; font-size:13px;">⚙️ Alarm permissions</button>
+            </div>
+
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb" id="breadcrumbNav">
+                <span onclick="goToYearView()">📅 Calendar (<span id="lblCurrentYear">2026</span>)</span>
+            </div>
+
+            <!-- VIEW 1: FULL YEAR CALENDAR (12 Months) -->
+            <div id="viewYear" style="display:block;">
+                <div class="year-selector">
+                    <label><b>Select Year:</b></label>
+                    <select id="yearDropdown" onchange="onYearChange()"></select>
+                    <button onclick="jumpToToday()">Today</button>
+                </div>
+                <div class="months-container" id="monthsContainer"></div>
+            </div>
+
+            <!-- VIEW 2: 24 HOURS TIME SLOTS -->
+            <div id="viewHours" style="display:none;">
+                <h3 id="selectedDateHeader" style="color:#1e3a8a; margin-top:0;">Selected Date:</h3>
+                <p style="color:#64748b; font-size:13px;">Double-click any Hour below to view 1 to 60 Minutes.</p>
+                <div class="hours-grid" id="hoursGridContainer"></div>
+            </div>
+
+            <!-- VIEW 3: 1 TO 60 MINUTES LIST -->
+            <div id="viewMinutes" style="display:none;">
+                <h3 id="selectedHourHeader" style="color:#1e3a8a; margin-top:0;">Selected Time Slot:</h3>
+                <p style="color:#64748b; font-size:13px;">Click on <b>'+ Add Medicine / Instruction'</b> next to any minute to set your reminder.</p>
+                <div class="minutes-list" id="minutesListContainer"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Medicine Entry Modal -->
+    <div class="modal" id="medicineModal">
+        <div class="modal-content">
+            <h3 id="modalTitleText">Add Medicine</h3>
+            <div class="form-group">
+                <label>Medicine Name:</label>
+                <input type="text" id="inputMedName" placeholder="e.g., Paracetamol 650mg">
+            </div>
+            <div class="form-group">
+                <label>Instructions / Dosage:</label>
+                <textarea id="inputMedInst" rows="3" placeholder="e.g., Take 1 tablet after meal"></textarea>
+            </div>
+            <div class="modal-btns">
+                <button class="btn-close" id="btnDeleteMed" onclick="deleteMedicineData()" style="display:none; background:#fee2e2; color:#b91c1c;">Delete</button>
+                <button class="btn-close" onclick="closeModalWindow()">Cancel</button>
+                <button class="btn-save" onclick="saveMedicineData()">Save Reminder</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // User Database & Authentication State
+    const STORE_KEY = "dsa_users_v1";
+    const SESSION_KEY = "dsa_session_v1";
+    function loadUsers() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; } }
+    function persistUsers() { try { localStorage.setItem(STORE_KEY, JSON.stringify(registeredUsersDb)); } catch (e) {} }
+    let registeredUsersDb = loadUsers();
+    let pendingUser = null;
+    let generatedOtpCode = null;
+    let currentUser = null;
+
+    // DSA Hash Map for Medicine Schedule
+    let reminderDatabase = new Map();
+    let selectedYear = new Date().getFullYear();
+    let selectedDateKey = null;
+    let selectedHourStr = null;
+    let activeMinuteKey = null;
+
+    let alarmAudioCtx = null;
+    let alarmIntervalTimer = null;
+    let dismissedMinuteKey = null;
+
+    // ==========================================
+    // AUTHENTICATION FLOW (REGISTER -> OTP -> PASSWORD -> LOGIN)
+    // ==========================================
+    function showRegisterScreen() {
+        document.getElementById("authRegister").style.display = "block";
+        document.getElementById("authOtp").style.display = "none";
+        document.getElementById("authLogin").style.display = "none";
+        document.getElementById("mainDashboard").style.display = "none";
+    }
+
+    function showLoginScreen() {
+        document.getElementById("authRegister").style.display = "none";
+        document.getElementById("authOtp").style.display = "none";
+        document.getElementById("authLogin").style.display = "block";
+        document.getElementById("mainDashboard").style.display = "none";
+    }
+
+    function handleSendOtp() {
+        let name = document.getElementById("regName").value.trim();
+        let phone = document.getElementById("regPhone").value.trim();
+        let img = document.getElementById("regImg").value.trim();
+
+        if (!name || !phone) {
+            alert("Please enter both your Name and a Fake/Demo WhatsApp Number!");
+            return;
+        }
+
+        // Generate a random 4-digit OTP
+        generatedOtpCode = String(Math.floor(1000 + Math.random() * 9000));
+        pendingUser = { name, phone, img, reminders: {} };
+
+        // Show simulated WhatsApp message on top of screen
+        let waBanner = document.getElementById("whatsappSimBanner");
+        waBanner.style.display = "block";
+        waBanner.innerHTML = `
+            <b>💬 Simulated WhatsApp Message to ${phone}:</b><br>
+            Hello <b>${name}</b>! Your OTP for Sayan's Medicine Reminder App is: <b style="font-size:18px; color:#15803d;">${generatedOtpCode}</b>
+        `;
+
+        // Auto-fill OTP input for convenience, or let user type it
+        document.getElementById("otpInput").value = generatedOtpCode;
+
+        document.getElementById("authRegister").style.display = "none";
+        document.getElementById("authOtp").style.display = "block";
+    }
+
+    function handleVerifyOtp() {
+        let enteredOtp = document.getElementById("otpInput").value.trim();
+        if (enteredOtp !== generatedOtpCode) {
+            alert("Incorrect OTP! Please check the green WhatsApp message box above.");
+            return;
+        }
+
+        // Generate Unique Account Password / ID
+        let newPasswordId;
+        do { newPasswordId = "MED-" + Math.floor(1000 + Math.random() * 9000); } while (registeredUsersDb[newPasswordId]);
+        registeredUsersDb[newPasswordId] = pendingUser;
+        persistUsers();
+
+        // Show generated password in the WhatsApp Simulation Banner
+        let waBanner = document.getElementById("whatsappSimBanner");
+        waBanner.style.display = "block";
+        waBanner.innerHTML = `
+            <b>✅ OTP Verified! Account Created for ${pendingUser.name}</b><br>
+            🔑 Your Generated Login Password is: <b style="font-size:18px; color:#1d4ed8;">${newPasswordId}</b><br>
+            <span style="font-size:12px;">(We have auto-filled it below. Click 'Login & Open System' to enter!)</span>
+        `;
+
+        document.getElementById("loginPass").value = newPasswordId;
+        showLoginScreen();
+    }
+
+    function handleLogin() {
+        let pass = document.getElementById("loginPass").value.trim();
+        if (!registeredUsersDb[pass]) {
+            alert("Invalid Account Password/ID! Please create an account first.");
+            return;
+        }
+        doLogin(pass);
+    }
+
+    function doLogin(pass) {
+        try { localStorage.setItem(SESSION_KEY, pass); } catch (e) {}
+        currentUser = registeredUsersDb[pass];
+        currentUser.id = pass;
+
+        // Load user's saved reminders into the Hash Map
+        reminderDatabase = new Map();
+        if (currentUser.reminders) {
+            for (let [k, v] of Object.entries(currentUser.reminders)) {
+                reminderDatabase.set(k, v);
+            }
+        }
+
+        // Update Dashboard Profile Bar
+        document.getElementById("navUserName").innerText = currentUser.name;
+        document.getElementById("navUserDetails").innerText = `WhatsApp: ${currentUser.phone} | Account ID: ${currentUser.id}`;
+        
+        let avatarEl = document.getElementById("navUserAvatar");
+        if (currentUser.img) {
+            avatarEl.innerHTML = `<img src="${currentUser.img}" alt="Pic">`;
+        } else {
+            avatarEl.innerText = currentUser.name.substring(0, 2).toUpperCase();
+        }
+
+        // Hide Auth & WhatsApp Banner, Open Main System
+        document.getElementById("whatsappSimBanner").style.display = "none";
+        document.getElementById("authLogin").style.display = "none";
+        document.getElementById("mainDashboard").style.display = "block";
+
+        initYearDropdown();
+        goToYearView();
+
+        // Android: ask permissions once, then (re)schedule every future reminder natively
+        Native.setup(false).then(() => Native.syncAll());
+    }
+
+    function handleLogout() {
+        try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+        stopAlarmSound();
+        currentUser = null;
+        document.getElementById("mainDashboard").style.display = "none";
+        showLoginScreen();
+    }
+
+    // ==========================================
+    // CALENDAR, HOURS & MINUTES NAVIGATION
+    // ==========================================
+    function initYearDropdown() {
+        const dropdown = document.getElementById("yearDropdown");
+        if (!dropdown) return;
+        dropdown.innerHTML = "";
+        for (let y = 2015; y <= 2035; y++) {
+            let opt = document.createElement("option");
+            opt.value = y;
+            opt.innerText = y;
+            if (y === selectedYear) opt.selected = true;
+            dropdown.appendChild(opt);
+        }
+        document.getElementById("lblCurrentYear").innerText = selectedYear;
+    }
+
+    function onYearChange() {
+        selectedYear = parseInt(document.getElementById("yearDropdown").value);
+        document.getElementById("lblCurrentYear").innerText = selectedYear;
+        renderFullYearCalendar();
+    }
+
+    function jumpToToday() {
+        let now = new Date();
+        selectedYear = now.getFullYear();
+        document.getElementById("yearDropdown").value = selectedYear;
+        document.getElementById("lblCurrentYear").innerText = selectedYear;
+        renderFullYearCalendar();
+        goToYearView();
+    }
+
+    function goToYearView() {
+        document.getElementById("viewYear").style.display = "block";
+        document.getElementById("viewHours").style.display = "none";
+        document.getElementById("viewMinutes").style.display = "none";
+        document.getElementById("breadcrumbNav").innerHTML = `<span onclick="goToYearView()">📅 Calendar (${selectedYear})</span>`;
+        renderFullYearCalendar();
+    }
+
+    function goToHoursView(dateKey) {
+        selectedDateKey = dateKey;
+        document.getElementById("viewYear").style.display = "none";
+        document.getElementById("viewHours").style.display = "block";
+        document.getElementById("viewMinutes").style.display = "none";
+        
+        document.getElementById("breadcrumbNav").innerHTML = `
+            <span onclick="goToYearView()">📅 Calendar (${selectedYear})</span> &gt; 
+            <span onclick="goToHoursView('${selectedDateKey}')">Date: ${selectedDateKey}</span>
+        `;
+        document.getElementById("selectedDateHeader").innerText = `Date Selected: ${selectedDateKey}`;
+        renderHoursGrid();
+    }
+
+    function goToMinutesView(hourStr) {
+        selectedHourStr = hourStr;
+        document.getElementById("viewYear").style.display = "none";
+        document.getElementById("viewHours").style.display = "none";
+        document.getElementById("viewMinutes").style.display = "block";
+
+        document.getElementById("breadcrumbNav").innerHTML = `
+            <span onclick="goToYearView()">📅 Calendar (${selectedYear})</span> &gt; 
+            <span onclick="goToHoursView('${selectedDateKey}')">${selectedDateKey}</span> &gt; 
+            <span>Time: ${selectedHourStr}:00 - ${selectedHourStr}:59</span>
+        `;
+        document.getElementById("selectedHourHeader").innerText = `Minute List for ${selectedDateKey} (${selectedHourStr}:00 to ${selectedHourStr}:59)`;
+        renderMinutesList();
+    }
+
+    function renderFullYearCalendar() {
+        const container = document.getElementById("monthsContainer");
+        if (!container) return;
+        container.innerHTML = "";
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const dayNamesShort = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+        for (let m = 0; m < 12; m++) {
+            let monthBox = document.createElement("div");
+            monthBox.className = "month-box";
+
+            let title = document.createElement("div");
+            title.className = "month-title";
+            title.innerText = monthNames[m];
+            monthBox.appendChild(title);
+
+            let grid = document.createElement("div");
+            grid.className = "cal-grid";
+
+            dayNamesShort.forEach(d => {
+                let dEl = document.createElement("div");
+                dEl.className = "day-name";
+                dEl.innerText = d;
+                grid.appendChild(dEl);
+            });
+
+            let firstDayIndex = new Date(selectedYear, m, 1).getDay();
+            let totalDaysInMonth = new Date(selectedYear, m + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.appendChild(document.createElement("div"));
+            }
+
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                let cell = document.createElement("div");
+                cell.className = "date-cell";
+                cell.innerText = day;
+
+                let mm = String(m + 1).padStart(2, '0');
+                let dd = String(day).padStart(2, '0');
+                let dateKeyStr = `${selectedYear}-${mm}-${dd}`;
+
+                let dayData = reminderDatabase.get(dateKeyStr);
+                if (dayData && Object.keys(dayData).length > 0) {
+                    cell.classList.add("has-med");
+                }
+
+                cell.ondblclick = () => goToHoursView(dateKeyStr);
+                grid.appendChild(cell);
+            }
+
+            monthBox.appendChild(grid);
+            container.appendChild(monthBox);
+        }
+    }
+
+    function renderHoursGrid() {
+        const gridContainer = document.getElementById("hoursGridContainer");
+        if (!gridContainer) return;
+        gridContainer.innerHTML = "";
+        let dayRecords = reminderDatabase.get(selectedDateKey) || {};
+
+        for (let h = 0; h < 24; h++) {
+            let hourStr = String(h).padStart(2, '0');
+            let card = document.createElement("div");
+            card.className = "hour-card";
+
+            let countMeds = Object.keys(dayRecords).filter(k => k.startsWith(hourStr + ":")).length;
+
+            if (countMeds > 0) {
+                card.classList.add("booked");
+                card.innerHTML = `<div class="hour-title">${hourStr}:00</div>
+                                  <div class="hour-sub">💊 ${countMeds} Reminder(s)</div>`;
+            } else {
+                card.innerHTML = `<div class="hour-title">${hourStr}:00</div>
+                                  <div style="font-size:12px; color:#64748b; margin-top:4px;">No meds</div>`;
+            }
+
+            card.ondblclick = () => goToMinutesView(hourStr);
+            gridContainer.appendChild(card);
+        }
+    }
+
+    function renderMinutesList() {
+        const listContainer = document.getElementById("minutesListContainer");
+        if (!listContainer) return;
+        listContainer.innerHTML = "";
+        let dayRecords = reminderDatabase.get(selectedDateKey) || {};
+
+        for (let min = 0; min < 60; min++) {
+            let minStr = String(min).padStart(2, '0');
+            let timeKey = `${selectedHourStr}:${minStr}`;
+
+            let row = document.createElement("div");
+            row.className = "minute-row";
+
+            let medInfo = dayRecords[timeKey];
+
+            let infoDiv = document.createElement("div");
+            if (medInfo) {
+                infoDiv.innerHTML = `
+                    <div class="minute-info">🕒 Time: ${timeKey}</div>
+                    <div class="minute-med-details">💊 <b>${medInfo.name}</b> — ${medInfo.inst || 'No instructions'}</div>
+                `;
+            } else {
+                infoDiv.innerHTML = `<div class="minute-info">🕒 Time: ${timeKey}</div>`;
+            }
+
+            let btn = document.createElement("button");
+            btn.className = "btn-add-med";
+            btn.innerText = medInfo ? "Edit Medicine" : "+ Add Medicine / Instruction";
+            btn.onclick = () => openMedicineModal(timeKey, medInfo);
+
+            row.appendChild(infoDiv);
+            row.appendChild(btn);
+            listContainer.appendChild(row);
+        }
+    }
+
+    function openMedicineModal(timeKey, existingData) {
+        activeMinuteKey = timeKey;
+        document.getElementById("modalTitleText").innerText = `Set Medicine (${selectedDateKey} at ${timeKey})`;
+        document.getElementById("inputMedName").value = existingData ? existingData.name : "";
+        document.getElementById("inputMedInst").value = existingData ? existingData.inst : "";
+        document.getElementById("btnDeleteMed").style.display = existingData ? "inline-block" : "none";
+        document.getElementById("medicineModal").style.display = "flex";
+    }
+
+    function closeModalWindow() {
+        document.getElementById("medicineModal").style.display = "none";
+    }
+
+    function saveMedicineData() {
+        let name = document.getElementById("inputMedName").value.trim();
+        let inst = document.getElementById("inputMedInst").value.trim();
+
+        if (!name) {
+            alert("Please enter a medicine name!");
+            return;
+        }
+
+        if (!reminderDatabase.has(selectedDateKey)) {
+            reminderDatabase.set(selectedDateKey, {});
+        }
+
+        reminderDatabase.get(selectedDateKey)[activeMinuteKey] = { name, inst };
+
+        // Sync with current user's account
+        if (currentUser) {
+            currentUser.reminders = {};
+            for (let [k, v] of reminderDatabase.entries()) {
+                currentUser.reminders[k] = v;
+            }
+        }
+
+        persistUsers();
+        Native.schedule(selectedDateKey, activeMinuteKey, { name, inst });
+
+        closeModalWindow();
+        renderMinutesList();
+        renderFullYearCalendar();
+    }
+
+    function deleteMedicineData() {
+        let day = reminderDatabase.get(selectedDateKey);
+        if (!day || !day[activeMinuteKey]) { closeModalWindow(); return; }
+        if (!confirm("Delete this reminder?")) return;
+        delete day[activeMinuteKey];
+        if (Object.keys(day).length === 0) reminderDatabase.delete(selectedDateKey);
+
+        if (currentUser) {
+            currentUser.reminders = {};
+            for (let [k, v] of reminderDatabase.entries()) currentUser.reminders[k] = v;
+        }
+        persistUsers();
+        Native.cancel(selectedDateKey, activeMinuteKey);
+
+        closeModalWindow();
+        renderMinutesList();
+        renderFullYearCalendar();
+    }
+
+    // ==========================================
+    // REAL-TIME CLOCK & AUDIO ALARM SYSTEM
+    // ==========================================
+    function playBeepSound() {
+        if (!alarmAudioCtx) alarmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = alarmAudioCtx.createOscillator();
+        let gain = alarmAudioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(900, alarmAudioCtx.currentTime);
+        gain.gain.setValueAtTime(0.3, alarmAudioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(alarmAudioCtx.destination);
+        osc.start();
+        osc.stop(alarmAudioCtx.currentTime + 0.4);
+    }
+
+    function triggerAlarmBanner(dateStr, timeStr, medObj) {
+        document.getElementById("alarmBanner").style.display = "block";
+        document.getElementById("alarmDetailsText").innerText = `User: ${currentUser.name} (${currentUser.phone}) | Medicine: ${medObj.name} at ${timeStr}`;
+        document.getElementById("alarmInstText").innerText = `Instructions: ${medObj.inst || 'Take your medicine now!'}`;
+
+        if (alarmIntervalTimer) clearInterval(alarmIntervalTimer);
+        playBeepSound();
+        alarmIntervalTimer = setInterval(playBeepSound, 1000);
+    }
+
+    function stopAlarmSound() {
+        document.getElementById("alarmBanner").style.display = "none";
+        if (alarmIntervalTimer) {
+            clearInterval(alarmIntervalTimer);
+            alarmIntervalTimer = null;
+        }
+        let now = new Date();
+        let yyyy = now.getFullYear();
+        let mm = String(now.getMonth() + 1).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
+        let hh = String(now.getHours()).padStart(2, '0');
+        let min = String(now.getMinutes()).padStart(2, '0');
+        dismissedMinuteKey = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+    }
+
+
+    // ==========================================
+    // ANDROID NATIVE ALARMS (Capacitor Local Notifications)
+    // Works when the app is closed / phone is locked / after reboot.
+    // In a normal browser every method is a harmless no-op.
+    // ==========================================
+    const Native = (() => {
+        const cap = window.Capacitor;
+        const isNative = !!(cap && typeof cap.isNativePlatform === "function" && cap.isNativePlatform());
+        const LN = (isNative && cap.Plugins) ? cap.Plugins.LocalNotifications : null;
+        const CHANNEL = "medicine_alarm_v1";
+        let ready = false, exactAsked = false;
+
+        function slotOf(userId) {
+            const i = Object.keys(registeredUsersDb).indexOf(userId);
+            return (i < 0 ? 0 : i) % 8;
+        }
+        function notifId(dateKey, timeKey) {
+            const [y, m, d] = dateKey.split("-").map(Number);
+            const [hh, mm] = timeKey.split(":").map(Number);
+            const mins = Math.floor((Date.UTC(y, m - 1, d, hh, mm) - Date.UTC(2010, 0, 1)) / 60000);
+            return mins * 8 + slotOf(currentUser ? currentUser.id : "");
+        }
+        function whenOf(dateKey, timeKey) {
+            const [y, m, d] = dateKey.split("-").map(Number);
+            const [hh, mm] = timeKey.split(":").map(Number);
+            return new Date(y, m - 1, d, hh, mm, 0, 0);
+        }
+        function build(dateKey, timeKey, med) {
+            const at = whenOf(dateKey, timeKey);
+            if (at.getTime() <= Date.now() + 1000) return null; // already past: skip
+            return {
+                id: notifId(dateKey, timeKey),
+                title: "💊 Medicine time: " + med.name,
+                body: med.inst || "Take your medicine now!",
+                schedule: { at, allowWhileIdle: true },
+                channelId: CHANNEL,
+                smallIcon: "ic_stat_bell",
+                autoCancel: true,
+                extra: { user: currentUser ? currentUser.name : "", date: dateKey, time: timeKey }
+            };
+        }
+
+        async function setup(force) {
+            if (!LN) { if (force) alert("Alarm permissions are only needed in the Android app."); return false; }
+            try {
+                let p = await LN.checkPermissions();
+                if (p.display !== "granted") p = await LN.requestPermissions();
+                if (p.display !== "granted") {
+                    if (force) alert("Notifications are blocked. Open Android Settings > Apps > DSA Medicine Reminder > Notifications and allow them.");
+                    return false;
+                }
+                await LN.createChannel({
+                    id: CHANNEL, name: "Medicine alarms",
+                    description: "Loud alarm when it is time to take medicine",
+                    importance: 5, visibility: 1, sound: "alarm.wav", vibration: true, lights: true
+                });
+                try {
+                    const ex = await LN.checkExactNotificationSetting();
+                    if (ex.exact_alarm !== "granted" && (force || !exactAsked)) {
+                        exactAsked = true;
+                        if (confirm("To ring at the exact minute, allow 'Alarms & reminders' for this app on the next screen.")) {
+                            await LN.changeExactNotificationSetting();
+                        }
+                    } else if (force) {
+                        alert("All set. Alarms will ring on time, even when the app is closed.\n\nTip: also set Battery to Unrestricted for this app.");
+                    }
+                } catch (e) { /* older Android: exact alarms need no permission */ }
+                ready = true;
+                return true;
+            } catch (e) { console.error(e); return false; }
+        }
+
+        async function schedule(dateKey, timeKey, med) {
+            if (!LN) return;
+            if (!ready && !(await setup(false))) return;
+            const n = build(dateKey, timeKey, med);
+            if (!n) return;
+            try { await LN.schedule({ notifications: [n] }); } catch (e) { console.error(e); }
+        }
+
+        async function cancel(dateKey, timeKey) {
+            if (!LN) return;
+            try { await LN.cancel({ notifications: [{ id: notifId(dateKey, timeKey) }] }); } catch (e) { console.error(e); }
+        }
+
+        async function syncAll() {
+            if (!LN || !currentUser || !ready) return;
+            const list = [];
+            for (const [dateKey, day] of reminderDatabase.entries()) {
+                for (const [timeKey, med] of Object.entries(day)) {
+                    const n = build(dateKey, timeKey, med);
+                    if (n) list.push(n);
+                }
+            }
+            if (list.length) { try { await LN.schedule({ notifications: list }); } catch (e) { console.error(e); } }
+        }
+
+        async function test() {
+            if (!LN) { alert("The native alarm test works in the Android app. In a browser the in-page alarm is used."); return; }
+            if (!ready && !(await setup(true))) return;
+            const at = new Date(Date.now() + 10000);
+            await LN.schedule({ notifications: [{
+                id: 2147483000, title: "💊 Test alarm", body: "If you hear this, background alarms work!",
+                schedule: { at, allowWhileIdle: true }, channelId: CHANNEL, smallIcon: "ic_stat_bell"
+            }]});
+            alert("Test alarm set for 10 seconds from now. Close the app or lock the phone and wait.");
+        }
+
+        return { isNative, setup, schedule, cancel, syncAll, test };
+    })();
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // Auto-login if a session exists (app opens straight to the calendar)
+        try {
+            const sid = localStorage.getItem(SESSION_KEY);
+            if (sid && registeredUsersDb[sid]) {
+                document.getElementById("authRegister").style.display = "none";
+                doLogin(sid);
+            } else if (Object.keys(registeredUsersDb).length > 0) {
+                showLoginScreen();
+            }
+        } catch (e) {}
+
+        setInterval(() => {
+            let now = new Date();
+            let clockDisplay = document.getElementById("liveClockDisplay");
+            if (clockDisplay) {
+                clockDisplay.innerText = now.toTimeString().split(' ')[0];
+            }
+
+            if (!currentUser) return;
+
+            let yyyy = now.getFullYear();
+            let mm = String(now.getMonth() + 1).padStart(2, '0');
+            let dd = String(now.getDate()).padStart(2, '0');
+            let currentDateKey = `${yyyy}-${mm}-${dd}`;
+            
+            let hh = String(now.getHours()).padStart(2, '0');
+            let min = String(now.getMinutes()).padStart(2, '0');
+            let currentTimeKey = `${hh}:${min}`;
+            let fullCurrentMinuteKey = `${currentDateKey} ${currentTimeKey}`;
+
+            if (dismissedMinuteKey && !dismissedMinuteKey.startsWith(fullCurrentMinuteKey)) {
+                dismissedMinuteKey = null;
+            }
+
+            if (reminderDatabase.has(currentDateKey)) {
+                let dayMeds = reminderDatabase.get(currentDateKey);
+                if (dayMeds[currentTimeKey] && fullCurrentMinuteKey !== dismissedMinuteKey) {
+                    let med = dayMeds[currentTimeKey];
+                    if (!alarmIntervalTimer) {
+                        triggerAlarmBanner(currentDateKey, currentTimeKey, med);
+                    }
+                }
+            }
+        }, 1000);
+    });
+</script>
+
+</body>
+</html>
